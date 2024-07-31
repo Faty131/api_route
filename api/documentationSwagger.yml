@@ -1,0 +1,168 @@
+openapi: 3.0.1
+info:
+  title: API de Calcul de Trajet et Génération d'URL de Carte
+  description: Cette API permet de calculer la distance et la durée totale d'un trajet basé sur une position de départ et une liste de points, et de générer une URL de carte représentant ce trajet.
+  version: 1.0.0
+  contact:
+    name: Fatima Ezzahra Bachri
+paths:
+  /api/calculate-route/:
+    post:
+      summary: Calculer le trajet
+      description: Calcule la distance totale et la durée estimée d'un trajet en se basant sur une position de départ, une liste de points intermédiaires, et une vitesse moyenne spécifiée.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CalculateRouteRequest'
+      responses:
+        '200':
+          description: Réponse avec les détails du trajet calculé, y compris la distance totale et la durée.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CalculateRouteResponse'
+        '400':
+          description: Erreur de validation des données fournies. Les champs requis peuvent être manquants ou mal formatés.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /api/generate-map-url/:
+    post:
+      summary: Générer une URL de carte
+      description: Génère une URL de carte représentant un chemin basé sur une liste de points avec des coordonnées longitude et latitude.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateMapUrlRequest'
+      responses:
+        '200':
+          description: Réponse avec l'URL de la carte générée contenant le chemin spécifié.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenerateMapUrlResponse'
+        '400':
+          description: Erreur de validation des données fournies. Les champs requis peuvent être manquants ou mal formatés.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  schemas:
+    Point:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identifiant unique du point (optionnel)
+        designation:
+          type: string
+          description: Désignation ou nom du point (optionnel)
+        longitude:
+          type: number
+          format: float
+          description: Longitude du point (obligatoire)
+        latitude:
+          type: number
+          format: float
+          description: Latitude du point (obligatoire)
+      required:
+        - longitude
+        - latitude
+    StartPosition:
+      type: object
+      properties:
+        longitude:
+          type: number
+          format: float
+          description: Longitude de la position de départ (obligatoire)
+        latitude:
+          type: number
+          format: float
+          description: Latitude de la position de départ (obligatoire)
+      required:
+        - longitude
+        - latitude
+    CalculateRouteRequest:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID unique de la demande (obligatoire)
+        startPosition:
+          $ref: '#/components/schemas/StartPosition'
+          description: Position de départ pour le calcul du trajet (obligatoire)
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Paramètres optionnels pour optimiser le trajet (par exemple, optimiser pour le carburant, le temps, minimiser les arrêts) (optionnel)
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: Liste des points intermédiaires à inclure dans le calcul du trajet (obligatoire)
+        averageSpeed:
+          type: number
+          format: float
+          description: Vitesse moyenne en kilomètres par heure utilisée pour estimer la durée du trajet (obligatoire)
+      required:
+        - uuid
+        - startPosition
+        - points
+        - averageSpeed
+    CalculateRouteResponse:
+      type: object
+      properties:
+        distance:
+          type: number
+          format: float
+          description: Distance totale du trajet en kilomètres
+        duration:
+          type: number
+          format: float
+          description: Durée totale estimée du trajet en minutes
+        startPosition:
+          $ref: '#/components/schemas/StartPosition'
+          description: Position de départ pour le calcul du trajet
+        parameters:
+          type: object
+          additionalProperties: true
+          description: Paramètres utilisés pour optimiser le trajet
+        points:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: Liste des points intermédiaires inclus dans le calcul du trajet, avec ordre spécifié
+    GenerateMapUrlRequest:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID unique de la demande (obligatoire)
+        path:
+          type: array
+          items:
+            $ref: '#/components/schemas/Point'
+          description: Liste des points formant le chemin à représenter sur la carte (obligatoire)
+      required:
+        - uuid
+        - path
+    GenerateMapUrlResponse:
+      type: object
+      properties:
+        mapUrl:
+          type: string
+          description: URL de la carte générée représentant le chemin spécifié
+    ErrorResponse:
+      type: object
+      properties:
+        detail:
+          type: string
+          description: Message d'erreur décrivant la cause de l'échec
