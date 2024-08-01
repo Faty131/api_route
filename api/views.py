@@ -32,3 +32,5 @@ class GenerateMapUrlView(APIView):
             return Response(response_data, status=status.HTTP_200_OK)
         print(serializer.errors)  # Affichage des erreurs de validation
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+###f"..." : C'est une f-string (formatted string literal), introduite dans Python 3.6. Elle permet d'incorporer des expressions Python directement dans des chaînes de caractères en utilisant des accolades {}.###
